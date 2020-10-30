@@ -42,7 +42,7 @@ void printCanonicalBinaryLinkedList(struct Node *head){
         printf("%d", ptr->bit);
         ptr = ptr->next;
     }
-    printf("\n");
+    //printf("\n");
 }
 
 void freeNodes(struct Node **head){
@@ -173,8 +173,8 @@ void createCanonicalBinaryFraction(struct Node *integerBinaryList, struct Node *
         }
 
     } else{
-        // Find closes 1
-        int spaceDisplace= 0;
+
+        // Find closes 1 bit
         if (integerBinaryList->bit == 0){
             // Find the first one
             while (fractionBinaryList != NULL){
@@ -205,38 +205,81 @@ void createCanonicalBinaryFraction(struct Node *integerBinaryList, struct Node *
     reverseLinkedList(canonicalBinaryList);
 
 }
-int main() {
+int main( int argc, char *argv[argc+1]) {
 
     struct Node *integerBinaryList = NULL;
     struct Node *fractionBinaryList = NULL;
     struct Node *canonicalBinaryList = NULL;
 
-    double decimalInput = 0.75;
-    int approximation = 1;
-    long int integerPart = (int long)decimalInput / 1;
+    //File name from arguments
+    if (argc != 2 ){
+        printf("no file");
+        return EXIT_SUCCESS;
+    }
 
-    printf("integer %li\n", integerPart);
-    printf("fraction %f\n", decimalInput-integerPart);
+    // Declare the read file
+    FILE *fp;
 
-    decimalToBinary(integerPart,&integerBinaryList);
-    fractionToBinary(decimalInput,approximation,&fractionBinaryList);
+    fp = fopen( argv[1], "r");
 
-    // PRINT LINKED LIST
-    printf("Integer Linked list size:%d\n", linkedListNodeCounter(integerBinaryList));
-    printf("Fraction Linked list size:%d\n", linkedListNodeCounter(fractionBinaryList));
-    printLinkedList(integerBinaryList);
-    printLinkedList(fractionBinaryList);
+    // Check if the file is empty
+    if ( fp == NULL ){
+        printf("Unable to read");
+        return EXIT_SUCCESS;
+    }
+    // Get the data
+    double decimalInput;
+    int approximation;
 
-    createCanonicalBinaryFraction(integerBinaryList, fractionBinaryList, approximation,&canonicalBinaryList);
+    while ( fscanf( fp, "%lf %d", &decimalInput, &approximation ) != EOF ){
 
-    printCanonicalBinaryLinkedList(canonicalBinaryList);
-    int size = linkedListNodeCounter(integerBinaryList);
-    printf("size:%d\n",size-1);
+        long int integerPart = (int long)decimalInput / 1;
 
+        //printf("integer %li\n", integerPart);
+        //printf("fraction %f\n", decimalInput-integerPart);
 
+        decimalToBinary(integerPart,&integerBinaryList);
+        fractionToBinary(decimalInput,approximation,&fractionBinaryList);
 
-    freeNodes(&integerBinaryList);
-    freeNodes(&fractionBinaryList);
-    freeNodes(&canonicalBinaryList);
+        // PRINT LINKED LIST
+//        printf("Integer Linked list size:%d\n", linkedListNodeCounter(integerBinaryList));
+//        printf("Fraction Linked list size:%d\n", linkedListNodeCounter(fractionBinaryList));
+//        printLinkedList(integerBinaryList);
+//        printLinkedList(fractionBinaryList);
+
+        createCanonicalBinaryFraction(integerBinaryList, fractionBinaryList, approximation,&canonicalBinaryList);
+
+        // Do this for each
+        if (integerBinaryList->bit != 0){
+            printCanonicalBinaryLinkedList(canonicalBinaryList);
+            int size = linkedListNodeCounter(integerBinaryList);
+            printf(" %d\n",size-1);
+        } else{
+            //printf("Zero first\n");
+            //Count until we encounter a 1
+            struct Node *ptr = fractionBinaryList;
+            int spaceRight=0;
+            while (ptr != NULL){
+                if (ptr->bit == 1){
+                    spaceRight--;
+                    break;
+                }
+                spaceRight--;
+                ptr = ptr->next;
+            }
+            printCanonicalBinaryLinkedList(canonicalBinaryList);
+            printf(" %d\n",spaceRight);
+
+        }
+
+        // Free linked list after use;
+        freeNodes(&integerBinaryList);
+        freeNodes(&fractionBinaryList);
+        freeNodes(&canonicalBinaryList);
+    }
+
+    // Close the file and destroy memory allocations
+    fclose(fp);
+
     return 0;
 }
